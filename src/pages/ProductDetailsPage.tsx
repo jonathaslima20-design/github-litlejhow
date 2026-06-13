@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Share2, ArrowLeft, Loader, Package, ShoppingCart, MessageCircle, TriangleAlert as AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +18,7 @@ import TieredPricingTable from '@/components/details/TieredPricingTable';
 import TieredPricingSkeleton from '@/components/details/TieredPricingSkeleton';
 import { useTieredPricing } from '@/hooks/useTieredPricing';
 import { useCart } from '@/contexts/CartContext';
+import CartModal from '@/components/corretor/CartModal';
 import ProductVariantModal from '@/components/product/ProductVariantModal';
 import { getStockStatus } from '@/lib/stockUtils';
 import { getAvailableVariantStock } from '@/lib/stockReservationService';
@@ -44,7 +45,8 @@ export default function ProductDetailsPage({ customDomainSlug }: ProductDetailsP
   const [language, setLanguage] = useState<SupportedLanguage>('pt-BR');
   const [currency, setCurrency] = useState<SupportedCurrency>('BRL');
   const { t } = useTranslation(language);
-  const { addToCart, getItemQuantity } = useCart();
+  const { addToCart, getItemQuantity, cart } = useCart();
+  const [showCart, setShowCart] = useState(false);
 
   const { inventoryEnabled, showStockOnStorefront, blockZeroStock } = useInventoryEnabledForStore(corretor?.id);
   const [variantStockData, setVariantStockData] = useState<Array<{ id: string; color: string | null; size: string | null; flavor: string | null; weight_variant_id: string | null; quantity: number; reserved_quantity: number; available: number }>>([]);
@@ -749,6 +751,34 @@ export default function ProductDetailsPage({ customDomainSlug }: ProductDetailsP
           inventoryEnabled={inventoryEnabled}
           blockZeroStock={blockZeroStock}
           showStockOnStorefront={showStockOnStorefront}
+        />
+
+        {/* Floating Cart Button */}
+        <AnimatePresence>
+          {cart.itemCount > 0 && (
+            <motion.button
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+              onClick={() => setShowCart(true)}
+              className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:bg-primary/90 transition-colors"
+            >
+              <ShoppingCart className="h-6 w-6" />
+              <Badge className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 flex items-center justify-center text-xs bg-destructive text-destructive-foreground">
+                {cart.itemCount}
+              </Badge>
+            </motion.button>
+          )}
+        </AnimatePresence>
+
+        {/* Cart Modal */}
+        <CartModal
+          open={showCart}
+          onOpenChange={setShowCart}
+          corretor={corretor}
+          currency={currency}
+          language={language}
         />
       </div>
     </StorefrontThemeProvider>
