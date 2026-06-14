@@ -196,6 +196,9 @@ function Header({ refCode }: { refCode: string | null }) {
             src="/logos/vitrinelogo-black.png"
             alt="VitrineTurbo"
             className="h-14 w-auto"
+            fetchPriority="high"
+            loading="eager"
+            decoding="async"
             onError={(e) => {
               e.currentTarget.src = 'https://ikvwygqmlqhsyqmpgaoz.supabase.co/storage/v1/object/public/public/logos/vitrinelogo-black.png.png';
             }}
@@ -1082,6 +1085,8 @@ function FooterLanding() {
               src="/logos/vitrinelogo-black.png"
               alt="VitrineTurbo"
               className="h-10 w-auto max-w-[160px] object-contain object-left"
+              loading="lazy"
+              decoding="async"
               onError={(e) => {
                 e.currentTarget.src = 'https://ikvwygqmlqhsyqmpgaoz.supabase.co/storage/v1/object/public/public/logos/vitrinelogo-black.png.png';
               }}
