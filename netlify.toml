@@ -6,6 +6,10 @@ publish = "dist"
 NODE_VERSION = "20"
 
 [[edge_functions]]
+path = "/sitemap.xml"
+function = "sitemap"
+
+[[edge_functions]]
 path = "/*"
 function = "meta-handler"
 
