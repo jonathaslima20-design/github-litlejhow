@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import SessionManager from '@/components/auth/SessionManager';
 import MetaPixel from '@/components/MetaPixel';
+import GtmSnippet from '@/components/GtmSnippet';
 import FloatingWhatsAppButton from '@/components/FloatingWhatsAppButton';
 import CookieConsentBanner from '@/components/CookieConsentBanner';
 import { OfferDisplayManager } from '@/components/offers/OfferDisplayManager';
@@ -83,6 +84,7 @@ import OffersManagementPage from '@/pages/admin/OffersManagementPage.tsx';
 import OfferEditorPage from '@/pages/admin/OfferEditorPage.tsx';
 import OfferAnalyticsPage from '@/pages/admin/OfferAnalyticsPage.tsx';
 import NotificationSettingsPage from '@/pages/admin/NotificationSettingsPage.tsx';
+import AdminTrackingPage from '@/pages/admin/TrackingPage.tsx';
 
 // Route Guards
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -185,6 +187,7 @@ function AppContent() {
     }>
       <SessionManager />
       <MetaPixel />
+      <GtmSnippet />
       <Routes>
         {/* Custom Domain Routes - when accessed via user's own domain */}
         {isCustomDomain && customDomainSlug && (
@@ -248,6 +251,7 @@ function AppContent() {
             <Route path="/admin/orphaned-files" element={<OrphanedFilesPage />} />
             <Route path="/admin/settings" element={<AdminSettingsPage />} />
             <Route path="/admin/notifications" element={<NotificationSettingsPage />} />
+            <Route path="/admin/tracking" element={<AdminTrackingPage />} />
             <Route path="/admin/netlify" element={<NetlifyIntegrationPage />} />
             <Route path="/admin/help" element={<HelpManagementPage />} />
             <Route path="/admin/mercadopago" element={<MercadoPagoPage />} />
