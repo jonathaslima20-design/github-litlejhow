@@ -90,12 +90,15 @@ import AdminTrackingPage from '@/pages/admin/TrackingPage.tsx';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AdminRoute from '@/components/AdminRoute';
 
+import { usePageSEO } from '@/hooks/usePageSEO';
+
 function AppContent() {
   const { isLoaded } = useTheme();
   const { isCustomDomain, slug: customDomainSlug, loading: customDomainLoading } = useCustomDomain();
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
 
+  usePageSEO();
   // Error boundary effect
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {

@@ -303,16 +303,30 @@ function generateDefaultMetaTagsHTML(): string {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>VitrineTurbo - Sua Vitrine Digital</title>
-    <meta name="description" content="VitrineTurbo - Plataforma completa para criar sua vitrine digital profissional" />
-    <meta property="og:title" content="VitrineTurbo - Sua Vitrine Digital" />
-    <meta property="og:description" content="Plataforma completa para criar sua vitrine digital profissional" />
-    <meta property="og:image" content="https://ikvwygqmlqhsyqmpgaoz.supabase.co/storage/v1/object/public/public/logos/flat-icon-vitrine.png.png" />
+    <title>VitrineTurbo: Catálogo Digital para WhatsApp | Venda Mais Sem Taxa</title>
+    <meta name="description" content="Crie seu catálogo digital profissional e compartilhe pelo WhatsApp. Mais de 3.000 lojas ativas, plano grátis, sem taxa sobre vendas. Comece agora." />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://vitrineturbo.com.br/" />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://vitrineturbo.com.br/" />
+    <meta property="og:title" content="VitrineTurbo: Catálogo Digital para WhatsApp | Venda Mais Sem Taxa" />
+    <meta property="og:description" content="Crie seu catálogo digital profissional e compartilhe pelo WhatsApp. Mais de 3.000 lojas ativas, plano grátis, sem taxa sobre vendas. Comece agora." />
+    <meta property="og:image" content="https://ikvwygqmlqhsyqmpgaoz.supabase.co/storage/v1/object/public/public/logos/flat-icon-vitrine.png.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="VitrineTurbo" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="VitrineTurbo: Catálogo Digital para WhatsApp | Venda Mais Sem Taxa" />
+    <meta name="twitter:description" content="Crie seu catálogo digital profissional e compartilhe pelo WhatsApp. Mais de 3.000 lojas ativas, plano grátis, sem taxa sobre vendas. Comece agora." />
+    <meta name="twitter:image" content="https://ikvwygqmlqhsyqmpgaoz.supabase.co/storage/v1/object/public/public/logos/flat-icon-vitrine.png.png" />
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"SoftwareApplication","name":"VitrineTurbo","description":"Plataforma completa de catálogo digital para WhatsApp com gestão de produtos, estoque, pedidos, cupons e domínio próprio. Sem taxa sobre vendas.","applicationCategory":"BusinessApplication","operatingSystem":"Web","url":"https://vitrineturbo.com.br","offers":{"@type":"AggregateOffer","lowPrice":"0","highPrice":"336","priceCurrency":"BRL","offerCount":"4"}}
+    </script>
   </head>
   <body>
     <h1>VitrineTurbo</h1>
-    <p>Sua Vitrine Digital</p>
+    <p>Catálogo Digital para WhatsApp</p>
   </body>
 </html>`;
 }
@@ -320,9 +334,72 @@ function generateDefaultMetaTagsHTML(): string {
 function isCustomDomainHostname(hostname: string): boolean {
   return hostname !== 'vitrineturbo.com' &&
     hostname !== 'www.vitrineturbo.com' &&
+    hostname !== 'vitrineturbo.com.br' &&
+    hostname !== 'www.vitrineturbo.com.br' &&
     !hostname.endsWith('.netlify.app') &&
     hostname !== 'localhost' &&
     hostname !== '127.0.0.1';
+}
+
+interface PublicPageSEO {
+  title: string;
+  description: string;
+  canonical: string;
+}
+
+const PUBLIC_PAGE_SEO: Record<string, PublicPageSEO> = {
+  planos: {
+    title: 'Planos e Preços | VitrineTurbo — Catálogo Digital Grátis',
+    description: 'Compare os planos do VitrineTurbo: Free, Trimestral, Semestral e Anual. Produtos ilimitados, domínio próprio, API REST e zero taxa sobre vendas.',
+    canonical: 'https://vitrineturbo.com.br/planos',
+  },
+  funcionalidades: {
+    title: 'Funcionalidades | Catálogo Digital com WhatsApp, Estoque e Pedidos',
+    description: 'Conheça todas as funcionalidades do VitrineTurbo: catálogo digital, controle de estoque, gestão de pedidos, cupons de desconto, domínio próprio e API REST.',
+    canonical: 'https://vitrineturbo.com.br/funcionalidades',
+  },
+  integracoes: {
+    title: 'Integrações | VitrineTurbo — API REST, Bling, Tiny e ERPs',
+    description: 'Integre o VitrineTurbo com Bling, Tiny e outros ERPs via API REST completa. Sincronize produtos, estoque e pedidos automaticamente.',
+    canonical: 'https://vitrineturbo.com.br/integracoes',
+  },
+  faq: {
+    title: 'Perguntas Frequentes | VitrineTurbo — Dúvidas sobre a Plataforma',
+    description: 'Tire suas dúvidas sobre o VitrineTurbo: planos, pagamentos, domínio próprio, controle de estoque, cupons, API e programa de indicações.',
+    canonical: 'https://vitrineturbo.com.br/faq',
+  },
+};
+
+function generatePublicPageHTML(seo: PublicPageSEO): string {
+  const imageUrl = 'https://ikvwygqmlqhsyqmpgaoz.supabase.co/storage/v1/object/public/public/logos/flat-icon-vitrine.png.png';
+  return `<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${seo.title}</title>
+    <meta name="description" content="${seo.description}" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="${seo.canonical}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="${seo.canonical}" />
+    <meta property="og:title" content="${seo.title}" />
+    <meta property="og:description" content="${seo.description}" />
+    <meta property="og:image" content="${imageUrl}" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="VitrineTurbo" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="${seo.title}" />
+    <meta name="twitter:description" content="${seo.description}" />
+    <meta name="twitter:image" content="${imageUrl}" />
+  </head>
+  <body>
+    <h1>${seo.title}</h1>
+    <p>${seo.description}</p>
+  </body>
+</html>`;
 }
 
 export default async (request: Request, context: Context) => {
@@ -495,7 +572,25 @@ export default async (request: Request, context: Context) => {
         pathSegments[0] === 'dashboard' ||
         pathSegments[0] === 'admin' ||
         pathSegments[0] === 'help' ||
-        pathSegments[0] === 'assets') {
+        pathSegments[0] === 'ajuda' ||
+        pathSegments[0] === 'assets' ||
+        pathSegments[0] === 'termos-de-uso' ||
+        pathSegments[0] === 'politica-de-privacidade' ||
+        pathSegments[0] === 'politica-de-cookies' ||
+        pathSegments[0] === 'excluir-minha-conta' ||
+        pathSegments[0] === 'termos-indicacoes' ||
+        pathSegments[0] in PUBLIC_PAGE_SEO) {
+
+      // Check for route-specific SEO pages
+      if (pathSegments.length === 1 && pathSegments[0] in PUBLIC_PAGE_SEO) {
+        console.log('📄 Public SEO page:', pathSegments[0]);
+        const html = generatePublicPageHTML(PUBLIC_PAGE_SEO[pathSegments[0]]);
+        return new Response(html, {
+          status: 200,
+          headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=3600' },
+        });
+      }
+
       console.log('📄 Special path, returning landing/default');
       if (supabaseUrl && supabaseKey) {
         const config = await fetchLinkPreviewConfig(supabaseUrl, supabaseKey, 'landing');
