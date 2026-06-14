@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, memo, Suspense, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Plus, Package, MessageCircle, Gift, Globe as Globe2, ChartBar as BarChart3, Check, X, Zap, TrendingUp, Users, LogIn, ShoppingCart, Radio, Box, ClipboardList, Tag, Code as Code2, Palette, Globe, Shield, TriangleAlert as AlertTriangle, Percent, Timer } from 'lucide-react';
 import HeroPhoneCarousel from '@/components/landing/HeroPhoneCarousel';
@@ -119,11 +119,19 @@ function useReveal() {
       });
     };
     observeAll();
-    const mutation = new MutationObserver(() => observeAll());
+    let debounceId: number | undefined;
+    const mutation = new MutationObserver(() => {
+      if (debounceId !== undefined) return;
+      debounceId = window.setTimeout(() => {
+        debounceId = undefined;
+        observeAll();
+      }, 150);
+    });
     mutation.observe(document.body, { childList: true, subtree: true });
     return () => {
       observer.disconnect();
       mutation.disconnect();
+      if (debounceId !== undefined) window.clearTimeout(debounceId);
     };
   }, []);
 }
@@ -179,7 +187,10 @@ function getRegisterHref(refCode: string | null): string {
 function Header({ refCode }: { refCode: string | null }) {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
+    const onScroll = () => {
+      const isScrolled = window.scrollY > 8;
+      setScrolled((prev) => prev === isScrolled ? prev : isScrolled);
+    };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
@@ -1170,6 +1181,12 @@ function FooterLanding() {
   );
 }
 
+const MemoizedBentoGrid = memo(BentoGrid);
+const MemoizedAnalyticsSection = memo(AnalyticsSection);
+const MemoizedSocialProofSection = memo(SocialProofSection);
+const MemoizedFaqSection = memo(FaqSection);
+const MemoizedFooterLanding = memo(FooterLanding);
+
 export default function LandingPage() {
   useReveal();
   useLandingTracking();
@@ -1178,15 +1195,15 @@ export default function LandingPage() {
     <div className="vt-root min-h-screen bg-white text-ink-900">
       <Header refCode={refCode} />
       <Hero refCode={refCode} />
-      <BentoGrid />
+      <MemoizedBentoGrid />
       <ProFeaturesSection refCode={refCode} />
       <DifferentiationSection refCode={refCode} />
-      <AnalyticsSection />
-      <SocialProofSection />
+      <MemoizedAnalyticsSection />
+      <MemoizedSocialProofSection />
       <PricingSection refCode={refCode} />
-      <FaqSection />
+      <MemoizedFaqSection />
       <FinalCTA refCode={refCode} />
-      <FooterLanding />
+      <MemoizedFooterLanding />
     </div>
   );
 }

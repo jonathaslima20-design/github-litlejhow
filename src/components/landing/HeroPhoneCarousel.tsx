@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { memo, startTransition, useCallback, useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLandingHeroScreens, type HeroConfig, type HeroScreen } from '@/hooks/useLandingHeroScreens';
 import { MockupRenderer } from './mockups/MockupRenderer';
@@ -77,6 +77,47 @@ function IPhone16ProMax({ children, shadow }: { children: React.ReactNode; shado
   );
 }
 
+const SlideItem = memo(function SlideItem({
+  slide,
+  offset,
+  isMobile,
+  mockupScale,
+  shadowStyle,
+  isActive,
+}: {
+  slide: HeroScreen;
+  offset: number;
+  isMobile: boolean;
+  mockupScale: number;
+  shadowStyle: string;
+  isActive: boolean;
+}) {
+  const abs = Math.abs(offset);
+  const translateX = offset * (isMobile ? 52 : 60);
+  const scale = isActive ? mockupScale : (isMobile ? 0.68 : 0.80) * mockupScale;
+  const opacity = abs > 1 ? 0 : isActive ? 1 : 0.52;
+  const zIndex = 10 - abs;
+
+  return (
+    <div
+      className="absolute top-1/2 left-1/2"
+      aria-hidden={!isActive}
+      style={{
+        transform: `translate(-50%, -50%) translateX(${translateX}%) scale(${scale})`,
+        opacity,
+        zIndex,
+        transition: 'transform 500ms cubic-bezier(0.22, 1, 0.36, 1), opacity 500ms ease',
+        willChange: abs <= 1 ? 'transform, opacity' : 'auto',
+        pointerEvents: isActive ? 'auto' : 'none',
+      }}
+    >
+      <IPhone16ProMax shadow={shadowStyle}>
+        <MockupRenderer screenType={slide.screen_type} config={slide.config} scrollY={slide.scroll_y} />
+      </IPhone16ProMax>
+    </div>
+  );
+});
+
 export default function HeroPhoneCarousel() {
   const { config, screens, isLoading } = useLandingHeroScreens();
   const slides = screens.length > 0 ? screens : FALLBACK_SLIDES;
@@ -86,7 +127,6 @@ export default function HeroPhoneCarousel() {
   const [reducedMotion, setReducedMotion] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const touchStartX = useRef<number | null>(null);
   const isVisible = useRef(true);
 
   const shadowStyle = getShadowStyle(config.mockup_shadow);
@@ -125,21 +165,37 @@ export default function HeroPhoneCarousel() {
     if (!config.autoplay || paused || reducedMotion) return;
     const id = window.setInterval(() => {
       if (isVisible.current) {
-        setActive((i) => (i + 1) % slides.length);
+        startTransition(() => setActive((i) => (i + 1) % slides.length));
       }
     }, interval);
     return () => window.clearInterval(id);
   }, [config.autoplay, paused, reducedMotion, interval, slides.length]);
 
-  const go = (dir: 1 | -1) => setActive((i) => (i + dir + slides.length) % slides.length);
+  const go = useCallback((dir: 1 | -1) => {
+    startTransition(() => setActive((i) => (i + dir + slides.length) % slides.length));
+  }, [slides.length]);
 
-  const onTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
-  const onTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX.current == null) return;
-    const delta = e.changedTouches[0].clientX - touchStartX.current;
-    if (Math.abs(delta) > 40) go(delta < 0 ? 1 : -1);
-    touchStartX.current = null;
-  };
+  // Native passive touch listeners for swipe detection
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    let startX: number | null = null;
+
+    const onTouchStart = (e: TouchEvent) => { startX = e.touches[0].clientX; };
+    const onTouchEnd = (e: TouchEvent) => {
+      if (startX == null) return;
+      const delta = e.changedTouches[0].clientX - startX;
+      if (Math.abs(delta) > 40) go(delta < 0 ? 1 : -1);
+      startX = null;
+    };
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchend', onTouchEnd, { passive: true });
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchend', onTouchEnd);
+    };
+  }, [go]);
 
   if (isLoading) {
     return (
@@ -160,8 +216,6 @@ export default function HeroPhoneCarousel() {
       aria-label="Mockups do aplicativo"
       onMouseEnter={() => config.pause_on_hover && setPaused(true)}
       onMouseLeave={() => config.pause_on_hover && setPaused(false)}
-      onTouchStart={onTouchStart}
-      onTouchEnd={onTouchEnd}
     >
       <div
         className="relative flex items-center justify-center"
@@ -173,32 +227,16 @@ export default function HeroPhoneCarousel() {
           if (offset > total / 2) offset -= total;
           if (offset < -total / 2) offset += total;
 
-          const isActive = offset === 0;
-          const abs = Math.abs(offset);
-
-          const translateX = offset * (isMobile ? 52 : 60);
-          const scale = isActive ? config.mockup_scale : (isMobile ? 0.68 : 0.80) * config.mockup_scale;
-          const opacity = abs > 1 ? 0 : isActive ? 1 : 0.52;
-          const zIndex = 10 - abs;
-
           return (
-            <div
+            <SlideItem
               key={slide.id}
-              className="absolute top-1/2 left-1/2"
-              aria-hidden={!isActive}
-              style={{
-                transform: `translate(-50%, -50%) translateX(${translateX}%) scale(${scale})`,
-                opacity,
-                zIndex,
-                transition: 'transform 500ms cubic-bezier(0.22, 1, 0.36, 1), opacity 500ms ease',
-                willChange: abs <= 1 ? 'transform, opacity' : 'auto',
-                pointerEvents: isActive ? 'auto' : 'none',
-              }}
-            >
-              <IPhone16ProMax shadow={shadowStyle}>
-                <MockupRenderer screenType={slide.screen_type} config={slide.config} scrollY={slide.scroll_y} />
-              </IPhone16ProMax>
-            </div>
+              slide={slide}
+              offset={offset}
+              isMobile={isMobile}
+              mockupScale={config.mockup_scale}
+              shadowStyle={shadowStyle}
+              isActive={offset === 0}
+            />
           );
         })}
       </div>
@@ -225,7 +263,7 @@ export default function HeroPhoneCarousel() {
           <button
             key={slide.id}
             type="button"
-            onClick={() => setActive(i)}
+            onClick={() => startTransition(() => setActive(i))}
             aria-label={`Ir para ${slide.label}`}
             aria-current={i === active}
             className="h-1.5 rounded-full transition-all duration-300"

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { supabase } from '@/lib/supabase';
 
 interface BannerClient {
@@ -9,7 +9,7 @@ interface BannerClient {
   display_order: number;
 }
 
-function ClientCard({ client }: { client: BannerClient }) {
+const ClientCard = memo(function ClientCard({ client }: { client: BannerClient }) {
   const initials = client.business_name
     .split(' ')
     .slice(0, 2)
@@ -53,7 +53,7 @@ function ClientCard({ client }: { client: BannerClient }) {
       </span>
     </a>
   );
-}
+});
 
 function CounterCard() {
   return (
@@ -79,6 +79,7 @@ export default function LandingSocialProof() {
   const [halfWidth, setHalfWidth] = useState(0);
 
   const trackRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number | null>(null);
   const isPausedRef = useRef(false);
   const offsetRef = useRef(0);
@@ -154,6 +155,27 @@ export default function LandingSocialProof() {
     };
   }, [halfWidth]);
 
+  // Passive touch/mouse handlers for pause control
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+
+    const pause = () => { isPausedRef.current = true; };
+    const resume = () => { isPausedRef.current = false; lastTimeRef.current = null; };
+
+    el.addEventListener('mouseenter', pause);
+    el.addEventListener('mouseleave', resume);
+    el.addEventListener('touchstart', pause, { passive: true });
+    el.addEventListener('touchend', resume, { passive: true });
+
+    return () => {
+      el.removeEventListener('mouseenter', pause);
+      el.removeEventListener('mouseleave', resume);
+      el.removeEventListener('touchstart', pause);
+      el.removeEventListener('touchend', resume);
+    };
+  }, []);
+
   if (!loaded || clients.length === 0) return null;
 
   const itemsWithCounter = [...clients, null];
@@ -162,15 +184,12 @@ export default function LandingSocialProof() {
   return (
     <div className="mt-14 rounded-2xl border hairline bg-surface py-10 overflow-hidden">
       <div
+        ref={scrollContainerRef}
         className="relative overflow-hidden"
         style={{
           maskImage: 'linear-gradient(to right, transparent, black 8%, black 92%, transparent)',
           WebkitMaskImage: 'linear-gradient(to right, transparent, black 8%, black 92%, transparent)',
         }}
-        onMouseEnter={() => { isPausedRef.current = true; }}
-        onMouseLeave={() => { isPausedRef.current = false; lastTimeRef.current = null; }}
-        onTouchStart={() => { isPausedRef.current = true; }}
-        onTouchEnd={() => { isPausedRef.current = false; lastTimeRef.current = null; }}
       >
         <div
           ref={trackRef}
