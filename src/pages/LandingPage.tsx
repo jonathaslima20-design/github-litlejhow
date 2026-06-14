@@ -195,6 +195,8 @@ function Header({ refCode }: { refCode: string | null }) {
           <img
             src="/logos/vitrinelogo-black.png"
             alt="VitrineTurbo"
+            width={180}
+            height={56}
             className="h-14 w-auto"
             fetchPriority="high"
             loading="eager"
@@ -861,7 +863,7 @@ function SocialProofSection() {
     <section id="usuarios" className="py-24 lg:py-32 bg-white border-t hairline" style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 400px' }}>
       <div className="max-w-7xl mx-auto px-6 lg:px-10">
         <SectionHeading kicker="/ usuários" title="Junte-se a milhares de usuários do VitrineTurbo" />
-        <Suspense fallback={<div className="mt-14 h-32 rounded-2xl border hairline bg-surface animate-pulse" />}>
+        <Suspense fallback={<div className="mt-14 min-h-[140px] rounded-2xl border hairline bg-surface animate-pulse" />}>
           <LandingSocialProof />
         </Suspense>
       </div>
@@ -1084,6 +1086,8 @@ function FooterLanding() {
             <img
               src="/logos/vitrinelogo-black.png"
               alt="VitrineTurbo"
+              width={160}
+              height={40}
               className="h-10 w-auto max-w-[160px] object-contain object-left"
               loading="lazy"
               decoding="async"
