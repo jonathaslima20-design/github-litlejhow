@@ -586,6 +586,21 @@ export default function CheckoutPage() {
     let cancelled = false;
 
     const checkReferral = async () => {
+      // First check if user already has prior approved payments (not eligible for referral discount)
+      const { data: priorPayments } = await supabase
+        .from('mp_payments')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('status', 'approved')
+        .limit(1);
+
+      if (cancelled) return;
+      if (priorPayments && priorPayments.length > 0) {
+        // User already paid before - not eligible for referral discount
+        localStorage.removeItem('vitrineturbo_ref_code');
+        return;
+      }
+
       // Check if user already has referred_by set
       const { data: userData } = await supabase
         .from('users')
@@ -629,7 +644,7 @@ export default function CheckoutPage() {
       if (refCode && !cancelled) {
         setReferralInput(refCode);
         setReferralLocked(true);
-        // Auto-validate
+        // Auto-validate (validateReferralCoupon now also checks payment history)
         const result = await validateReferralCoupon(refCode, user.id);
         if (cancelled) return;
         if (result.valid) {
@@ -642,6 +657,11 @@ export default function CheckoutPage() {
             .maybeSingle();
           const pct = settings?.discount_percentage ?? 20;
           setReferralDiscount(calculateReferralDiscount(plan.price, pct));
+        } else {
+          // Invalid referral for this user - unlock the field and clear localStorage
+          setReferralLocked(false);
+          setReferralInput('');
+          localStorage.removeItem('vitrineturbo_ref_code');
         }
       }
     };

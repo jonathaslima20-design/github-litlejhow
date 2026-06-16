@@ -126,7 +126,7 @@ export async function validateReferralCoupon(code: string, currentUserId: string
 
   const { data: referrer, error } = await supabase
     .from('users')
-    .select('id, referral_code')
+    .select('id, referral_code, created_at')
     .ilike('referral_code', code.trim())
     .maybeSingle();
 
@@ -136,6 +136,29 @@ export async function validateReferralCoupon(code: string, currentUserId: string
 
   if (referrer.id === currentUserId) {
     return { valid: false, error: 'Voce nao pode usar seu proprio cupom' };
+  }
+
+  // Only allow referral discount on the user's first payment
+  const { data: priorPayments } = await supabase
+    .from('mp_payments')
+    .select('id')
+    .eq('user_id', currentUserId)
+    .eq('status', 'approved')
+    .limit(1);
+
+  if (priorPayments && priorPayments.length > 0) {
+    return { valid: false, error: 'Desconto de indicacao disponivel apenas no primeiro pagamento' };
+  }
+
+  // Reject if user was created before the referrer (temporal impossibility)
+  const { data: currentUser } = await supabase
+    .from('users')
+    .select('created_at')
+    .eq('id', currentUserId)
+    .maybeSingle();
+
+  if (currentUser && referrer.created_at && currentUser.created_at < referrer.created_at) {
+    return { valid: false, error: 'Cupom de indicacao invalido para esta conta' };
   }
 
   return { valid: true, referrerId: referrer.id };

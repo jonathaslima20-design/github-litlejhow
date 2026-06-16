@@ -144,11 +144,32 @@ async function resolveReferralDiscount(
 
   const { data: referrer } = await admin
     .from("users")
-    .select("id, referral_code")
+    .select("id, referral_code, created_at")
     .ilike("referral_code", referralCode.trim())
     .maybeSingle();
 
   if (!referrer || referrer.id === userId) return null;
+
+  // Only allow referral discount on the user's first-ever payment
+  const { data: priorPayments } = await admin
+    .from("mp_payments")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("status", "approved")
+    .limit(1);
+
+  if (priorPayments && priorPayments.length > 0) return null;
+
+  // Reject if user account was created before the referrer (temporal impossibility)
+  const { data: currentUser } = await admin
+    .from("users")
+    .select("created_at")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (currentUser && referrer.created_at && currentUser.created_at < referrer.created_at) {
+    return null;
+  }
 
   const { data: settings } = await admin
     .from("referral_settings")

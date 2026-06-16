@@ -145,7 +145,13 @@ function useReferralTracking() {
     if (!ref) return;
 
     setRefCode(ref);
-    localStorage.setItem('vitrineturbo_ref_code', ref);
+    // Only persist referral code if user is not already authenticated
+    const session = supabase.auth.getSession();
+    session.then(({ data }) => {
+      if (!data.session) {
+        localStorage.setItem('vitrineturbo_ref_code', ref);
+      }
+    });
 
     // Track click (fire-and-forget)
     (async () => {
