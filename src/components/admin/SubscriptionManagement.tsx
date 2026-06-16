@@ -241,7 +241,7 @@ export default function SubscriptionManagement({
   };
 
   const handleUpdateSubscription = async () => {
-    if (!subscription) return;
+    if (!subscription || !userId) return;
 
     setIsUpdating(true);
     try {
