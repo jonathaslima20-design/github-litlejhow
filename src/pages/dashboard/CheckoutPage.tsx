@@ -485,6 +485,7 @@ export default function CheckoutPage() {
   const [referralError, setReferralError] = useState('');
   const [referralDiscount, setReferralDiscount] = useState<{ discount: number; finalPrice: number } | null>(null);
   const [validatedReferralCode, setValidatedReferralCode] = useState<string | undefined>(undefined);
+  const [isFirstPayment, setIsFirstPayment] = useState(false);
 
   const planId = searchParams.get('plan');
   const cycle = searchParams.get('cycle');
@@ -597,9 +598,12 @@ export default function CheckoutPage() {
       if (cancelled) return;
       if (priorPayments && priorPayments.length > 0) {
         // User already paid before - not eligible for referral discount
+        setIsFirstPayment(false);
         localStorage.removeItem('vitrineturbo_ref_code');
         return;
       }
+
+      setIsFirstPayment(true);
 
       // Check if user already has referred_by set
       const { data: userData } = await supabase
@@ -894,7 +898,7 @@ export default function CheckoutPage() {
         )}
 
         {/* Referral Coupon Field */}
-        {!referralValidated && (
+        {!referralValidated && isFirstPayment && (
           <Card>
             <CardContent className="p-4 space-y-3">
               <Label className="text-sm font-medium flex items-center gap-2">
@@ -927,7 +931,7 @@ export default function CheckoutPage() {
         )}
 
         {/* Referral validated badge */}
-        {referralValidated && (
+        {referralValidated && isFirstPayment && (
           <div className="flex items-center gap-2 px-1">
             <Lock className="h-3.5 w-3.5 text-muted-foreground" />
             <span className="text-xs text-muted-foreground">Cupom de indicacao <strong>{referralInput}</strong> aplicado</span>
