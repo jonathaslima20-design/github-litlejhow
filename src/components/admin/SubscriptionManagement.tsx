@@ -168,6 +168,7 @@ export default function SubscriptionManagement({
     if (!subscription) return;
 
     const newStatus: SubscriptionStatus = subscription.status === 'active' ? 'suspended' : 'active';
+    // 'cancelled' subscriptions should also be reactivated to 'active', handled above
 
     setIsUpdating(true);
     try {
@@ -814,7 +815,7 @@ export default function SubscriptionManagement({
             <Button
               variant={subscription.status === 'active' ? 'destructive' : 'default'}
               onClick={handleToggleStatus}
-              disabled={isUpdating || subscription.status === 'cancelled'}
+              disabled={isUpdating}
               className="flex-1"
             >
               {subscription.status === 'active' ? (
@@ -833,7 +834,7 @@ export default function SubscriptionManagement({
             <Button
               variant={subscription.payment_status === 'paid' ? 'outline' : 'default'}
               onClick={handleTogglePaymentStatus}
-              disabled={isUpdating || subscription.status === 'cancelled'}
+              disabled={isUpdating}
               className="flex-1"
             >
               {subscription.payment_status === 'paid' ? 'Marcar como Pendente' : 'Marcar como Pago'}
