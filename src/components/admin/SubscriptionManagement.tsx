@@ -134,10 +134,38 @@ export default function SubscriptionManagement({
 
   const [paymentForm, setPaymentForm] = useState({
     amount: subscription?.plan_price || 0,
+    billing_cycle: (subscription?.billing_cycle as BillingCycle) || 'monthly',
     payment_method: 'pix' as string,
     payment_date: format(new Date(), 'yyyy-MM-dd'),
     notes: '',
   });
+
+  const [planPrices, setPlanPrices] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    const fetchPlanPrices = async () => {
+      const { data } = await supabase
+        .from('subscription_plans')
+        .select('duration, price')
+        .eq('is_active', true);
+
+      if (data) {
+        const durationToCycle: Record<string, string> = {
+          'Mensal': 'monthly',
+          'Trimestral': 'quarterly',
+          'Semestral': 'semiannually',
+          'Anual': 'annually',
+        };
+        const prices: Record<string, number> = {};
+        data.forEach((plan) => {
+          const cycle = durationToCycle[plan.duration];
+          if (cycle) prices[cycle] = plan.price;
+        });
+        setPlanPrices(prices);
+      }
+    };
+    fetchPlanPrices();
+  }, []);
 
   useEffect(() => {
     if (subscription) {
@@ -149,7 +177,11 @@ export default function SubscriptionManagement({
         payment_status: subscription.payment_status || 'pending',
         next_payment_date: subscription.next_payment_date || '',
       });
-      setPaymentForm(prev => ({ ...prev, amount: subscription.plan_price || 0 }));
+      setPaymentForm(prev => ({
+        ...prev,
+        amount: subscription.plan_price || 0,
+        billing_cycle: (subscription.billing_cycle as BillingCycle) || 'monthly',
+      }));
     }
   }, [subscription]);
 
@@ -168,7 +200,6 @@ export default function SubscriptionManagement({
     if (!subscription) return;
 
     const newStatus: SubscriptionStatus = subscription.status === 'active' ? 'suspended' : 'active';
-    // 'cancelled' subscriptions should also be reactivated to 'active', handled above
 
     setIsUpdating(true);
     try {
@@ -195,6 +226,10 @@ export default function SubscriptionManagement({
         plan_status: newStatus === 'active' ? 'active' : 'suspended',
         billing_cycle: subscription.billing_cycle,
       };
+      if (newEndDate) {
+        userUpdate.next_payment_date = newEndDate;
+        userUpdate.subscription_end_date = newEndDate;
+      }
 
       await supabase
         .from('users')
@@ -341,10 +376,18 @@ export default function SubscriptionManagement({
 
       if (paymentError) throw paymentError;
 
+      const selectedCycle = paymentForm.billing_cycle;
       const newNextPaymentDate = calculateNextPaymentDate(
         paymentForm.payment_date,
-        subscription.billing_cycle as BillingCycle
+        selectedCycle
       );
+
+      const planNameMap: Record<string, string> = {
+        monthly: 'Plano Mensal',
+        quarterly: 'Plano Trimestral',
+        semiannually: 'Plano Semestral',
+        annually: 'Plano Anual',
+      };
 
       const { error: subError } = await supabase
         .from('subscriptions')
@@ -352,6 +395,9 @@ export default function SubscriptionManagement({
           payment_status: 'paid',
           status: 'active',
           next_payment_date: newNextPaymentDate,
+          billing_cycle: selectedCycle,
+          plan_price: paymentForm.amount,
+          plan_name: planNameMap[selectedCycle] || subscription.plan_name,
         })
         .eq('id', subscription.id);
 
@@ -361,14 +407,15 @@ export default function SubscriptionManagement({
         .from('users')
         .update({
           plan_status: 'active',
-          billing_cycle: subscription.billing_cycle,
+          billing_cycle: selectedCycle,
         })
         .eq('id', userId);
 
       toast.success('Pagamento registrado com sucesso');
       setIsPaymentDialogOpen(false);
       setPaymentForm({
-        amount: subscription.plan_price || 0,
+        amount: paymentForm.amount,
+        billing_cycle: selectedCycle,
         payment_method: 'pix',
         payment_date: format(new Date(), 'yyyy-MM-dd'),
         notes: '',
@@ -579,7 +626,29 @@ export default function SubscriptionManagement({
 
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="payment-amount">Valor (R$)</Label>
+                    <Label htmlFor="payment-billing-cycle">Plano (Periodicidade)</Label>
+                    <Select
+                      value={paymentForm.billing_cycle}
+                      onValueChange={(value) => {
+                        const newCycle = value as BillingCycle;
+                        const newAmount = planPrices[newCycle] ?? paymentForm.amount;
+                        setPaymentForm({ ...paymentForm, billing_cycle: newCycle, amount: newAmount });
+                      }}
+                    >
+                      <SelectTrigger id="payment-billing-cycle">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="monthly">Mensal</SelectItem>
+                        <SelectItem value="quarterly">Trimestral (3 meses)</SelectItem>
+                        <SelectItem value="semiannually">Semestral (6 meses)</SelectItem>
+                        <SelectItem value="annually">Anual (12 meses)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="payment-amount">{getPriceLabel(paymentForm.billing_cycle)}</Label>
                     <Input
                       id="payment-amount"
                       type="number"
@@ -632,7 +701,7 @@ export default function SubscriptionManagement({
 
                   <div className="rounded-lg bg-muted/50 p-3 text-sm">
                     <p className="text-muted-foreground">
-                      Proximo pagamento sera calculado como: <strong>{format(new Date(paymentForm.payment_date || new Date()), 'dd/MM/yyyy', { locale: ptBR })}</strong> + {getBillingCycleLabel(subscription.billing_cycle).toLowerCase()} = <strong>{format(new Date(calculateNextPaymentDate(paymentForm.payment_date || format(new Date(), 'yyyy-MM-dd'), subscription.billing_cycle as BillingCycle)), 'dd/MM/yyyy', { locale: ptBR })}</strong>
+                      Proximo pagamento sera calculado como: <strong>{format(new Date(paymentForm.payment_date || new Date()), 'dd/MM/yyyy', { locale: ptBR })}</strong> + {getBillingCycleLabel(paymentForm.billing_cycle).toLowerCase()} = <strong>{format(new Date(calculateNextPaymentDate(paymentForm.payment_date || format(new Date(), 'yyyy-MM-dd'), paymentForm.billing_cycle)), 'dd/MM/yyyy', { locale: ptBR })}</strong>
                     </p>
                   </div>
                 </div>
