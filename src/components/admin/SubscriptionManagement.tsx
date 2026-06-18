@@ -408,6 +408,8 @@ export default function SubscriptionManagement({
         .update({
           plan_status: 'active',
           billing_cycle: selectedCycle,
+          next_payment_date: newNextPaymentDate,
+          subscription_end_date: newNextPaymentDate,
         })
         .eq('id', userId);
 
