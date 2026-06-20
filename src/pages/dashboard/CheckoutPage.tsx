@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { trackPurchase } from '@/lib/metaEvents';
+import { trackGoogleAdsPurchase } from '@/lib/googleAdsEvents';
 import {
   createPixPayment,
   createCardPayment,
@@ -476,6 +477,7 @@ export default function CheckoutPage() {
   const [sdkError, setSdkError] = useState(false);
   const [offerContext, setOfferContext] = useState<OfferContext | null>(null);
   const [offerLoading, setOfferLoading] = useState(false);
+  const [googleAdsConfig, setGoogleAdsConfig] = useState<{ tagId: string; purchaseId: string } | null>(null);
 
   // Referral coupon state
   const [referralInput, setReferralInput] = useState('');
@@ -723,6 +725,18 @@ export default function CheckoutPage() {
     return () => { cancelled = true; };
   }, []);
 
+  useEffect(() => {
+    supabase
+      .from('landing_tracking_config')
+      .select('google_ads_tag_id, google_ads_enabled, google_ads_purchase_id')
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.google_ads_enabled && data?.google_ads_tag_id && data?.google_ads_purchase_id) {
+          setGoogleAdsConfig({ tagId: data.google_ads_tag_id, purchaseId: data.google_ads_purchase_id });
+        }
+      });
+  }, []);
+
   const handleRetrySDK = useCallback(async () => {
     setSdkError(false);
     setSdkReady(false);
@@ -743,6 +757,9 @@ export default function CheckoutPage() {
     setPaymentComplete(true);
     if (plan) {
       trackPurchase(plan.name, plan.price, user?.email);
+      if (googleAdsConfig) {
+        trackGoogleAdsPurchase(googleAdsConfig.tagId, googleAdsConfig.purchaseId, plan.price, plan.id);
+      }
     }
     // Save referred_by if coupon was used and user doesn't already have it
     if (validatedReferralCode && user?.id) {
@@ -768,7 +785,7 @@ export default function CheckoutPage() {
       }
     }
     await refreshUser();
-  }, [refreshUser, plan, user?.email, user?.id, validatedReferralCode]);
+  }, [refreshUser, plan, user?.email, user?.id, validatedReferralCode, googleAdsConfig]);
 
   if (planLoading || !plan) {
     return (

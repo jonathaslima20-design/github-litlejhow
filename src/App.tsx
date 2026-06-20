@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import SessionManager from '@/components/auth/SessionManager';
 import MetaPixel from '@/components/MetaPixel';
 import GtmSnippet from '@/components/GtmSnippet';
+import GoogleAdsSnippet from '@/components/GoogleAdsSnippet';
 import FloatingWhatsAppButton from '@/components/FloatingWhatsAppButton';
 import CookieConsentBanner from '@/components/CookieConsentBanner';
 import { OfferDisplayManager } from '@/components/offers/OfferDisplayManager';
@@ -191,6 +192,7 @@ function AppContent() {
       <SessionManager />
       <MetaPixel />
       <GtmSnippet />
+      <GoogleAdsSnippet />
       <Routes>
         {/* Custom Domain Routes - when accessed via user's own domain */}
         {isCustomDomain && customDomainSlug && (

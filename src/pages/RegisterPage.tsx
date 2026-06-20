@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { Loader, CircleAlert as AlertCircle, MessageCircle } from 'lucide-react';
 import { trackLead } from '@/lib/metaEvents';
+import { trackGoogleAdsCadastro } from '@/lib/googleAdsEvents';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -61,6 +62,7 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [registerError, setRegisterError] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
+  const [googleAdsConfig, setGoogleAdsConfig] = useState<{ tagId: string; cadastroId: string } | null>(null);
 
   useEffect(() => {
     supabase
@@ -71,6 +73,16 @@ export default function RegisterPage() {
       .then(({ data }) => {
         if (data?.setting_value) {
           injectMetaPixel(data.setting_value);
+        }
+      });
+
+    supabase
+      .from('landing_tracking_config')
+      .select('google_ads_tag_id, google_ads_enabled, google_ads_cadastro_id')
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.google_ads_enabled && data?.google_ads_tag_id && data?.google_ads_cadastro_id) {
+          setGoogleAdsConfig({ tagId: data.google_ads_tag_id, cadastroId: data.google_ads_cadastro_id });
         }
       });
   }, []);
@@ -130,6 +142,9 @@ export default function RegisterPage() {
       // Clear referral code from localStorage after successful registration
       localStorage.removeItem('vitrineturbo_ref_code');
       trackLead(data.email);
+      if (googleAdsConfig) {
+        trackGoogleAdsCadastro(googleAdsConfig.tagId, googleAdsConfig.cadastroId);
+      }
       toast.success('Cadastro realizado com sucesso!');
       navigate('/dashboard');
     } catch (error: any) {

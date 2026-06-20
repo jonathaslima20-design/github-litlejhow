@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { trackViewPricing, trackInitiateCheckout } from '@/lib/metaEvents';
+import { trackGoogleAdsCheckout } from '@/lib/googleAdsEvents';
 import {
   Dialog,
   DialogContent,
@@ -34,6 +35,7 @@ interface SubscriptionModalProps {
 export default function SubscriptionModal({ open, onOpenChange, isForced = false, limitReason, planStatus, offerDiscount }: SubscriptionModalProps) {
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [googleAdsConfig, setGoogleAdsConfig] = useState<{ tagId: string; checkoutId: string } | null>(null);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -45,6 +47,15 @@ export default function SubscriptionModal({ open, onOpenChange, isForced = false
     if (open) {
       fetchPlans();
       trackViewPricing();
+      supabase
+        .from('landing_tracking_config')
+        .select('google_ads_tag_id, google_ads_enabled, google_ads_checkout_id')
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data?.google_ads_enabled && data?.google_ads_tag_id && data?.google_ads_checkout_id) {
+            setGoogleAdsConfig({ tagId: data.google_ads_tag_id, checkoutId: data.google_ads_checkout_id });
+          }
+        });
     }
   }, [open]);
 
@@ -397,6 +408,9 @@ export default function SubscriptionModal({ open, onOpenChange, isForced = false
                         }`}
                         onClick={() => {
                           trackInitiateCheckout(plan.name, plan.price);
+                          if (googleAdsConfig) {
+                            trackGoogleAdsCheckout(googleAdsConfig.tagId, googleAdsConfig.checkoutId);
+                          }
                           onOpenChange(false);
                           const params = new URLSearchParams({ plan: plan.id, cycle: plan.duration });
                           if (offerDiscount) params.set('offer_id', offerDiscount.offer_id);
