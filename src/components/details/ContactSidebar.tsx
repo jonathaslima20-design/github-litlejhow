@@ -1,16 +1,12 @@
-import { useState } from 'react';
 import { Phone, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { formatPhone, generateWhatsAppUrl, getInitials, formatWhatsAppForDisplay } from '@/lib/utils';
+import { formatPhone, generateWhatsAppUrl, getInitials } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { User } from '@/types';
 import { trackWhatsAppClick } from '@/lib/tracking';
-import { createOrder } from '@/lib/orderService';
 import { useTranslation, generateWhatsAppMessage, type SupportedLanguage } from '@/lib/i18n';
-import { useInventoryEnabledForStore } from '@/hooks/useInventoryEnabled';
-import CustomerInfoDialog, { type CustomerInfo } from '@/components/orders/CustomerInfoDialog';
 
 interface ContactSidebarProps {
   corretor: User;
@@ -28,79 +24,31 @@ export default function ContactSidebar({
   itemId,
   itemTitle,
   itemType,
-  createdAt,
-  itemImageUrl,
-  itemPrice,
   language = 'pt-BR'
 }: ContactSidebarProps) {
   const { t } = useTranslation(language);
-  const { inventoryEnabled, autoDeductStock } = useInventoryEnabledForStore(corretor?.id);
-  const [showCustomerDialog, setShowCustomerDialog] = useState(false);
-  const [sendingOrder, setSendingOrder] = useState(false);
 
   const countryCode = corretor.country_code || '55';
 
-  const handleWhatsAppClick = (e: React.MouseEvent) => {
+  const handleWhatsAppClick = async (e: React.MouseEvent) => {
     e.preventDefault();
-    setShowCustomerDialog(true);
-  };
 
-  const handleCustomerConfirm = async (info: CustomerInfo) => {
-    setSendingOrder(true);
-    try {
-      const customerLine = `\n\n*Cliente:* ${info.name}\n*WhatsApp:* +${info.countryCode}${info.whatsapp}`;
-      const baseMessage = generateWhatsAppMessage(
-        language,
-        corretor.name,
-        itemTitle,
-        itemId
-      ) + (itemImageUrl ? `\n\nImagem do produto: ${itemImageUrl}` : '') + customerLine;
+    const message = generateWhatsAppMessage(
+      language,
+      corretor.name,
+      itemTitle,
+      itemId,
+      window.location.href
+    );
 
-      const whatsappUrl = corretor.whatsapp ? generateWhatsAppUrl(corretor.whatsapp, baseMessage, countryCode) : '';
+    const whatsappUrl = corretor.whatsapp
+      ? generateWhatsAppUrl(corretor.whatsapp, message, countryCode)
+      : '';
 
-      try {
-        const unitPrice = itemPrice || 0;
-        await createOrder(
-          {
-            store_owner_id: corretor.id,
-            customer_name: info.name,
-            customer_whatsapp: info.whatsapp,
-            customer_country_code: info.countryCode,
-            order_type: 'whatsapp',
-            subtotal: unitPrice,
-            total: unitPrice,
-            whatsapp_message: baseMessage,
-            source: 'product_page',
-          },
-          [
-            {
-              product_id: itemId,
-              product_title: itemTitle,
-              product_image_url: itemImageUrl || '',
-              quantity: 1,
-              unit_price: unitPrice,
-              subtotal: unitPrice,
-            },
-          ],
-          inventoryEnabled && autoDeductStock
-            ? { enabled: true, storeOwnerId: corretor.id }
-            : undefined
-        );
-      } catch (err) {
-        console.error('Failed to save order from product page:', err);
-      }
+    await trackWhatsAppClick(itemId, 'product', 'contact_sidebar');
 
-      await trackWhatsAppClick(itemId, 'product', 'contact_sidebar');
-
-      if (whatsappUrl && whatsappUrl !== '#') {
-        window.open(whatsappUrl, '_blank');
-      }
-
-      setShowCustomerDialog(false);
-    } catch (err) {
-      console.error('Error in contact sidebar order:', err);
-    } finally {
-      setSendingOrder(false);
+    if (whatsappUrl && whatsappUrl !== '#') {
+      window.open(whatsappUrl, '_blank');
     }
   };
 
@@ -206,16 +154,6 @@ export default function ContactSidebar({
           </Button>
         </div>
       </div>
-
-      <CustomerInfoDialog
-        open={showCustomerDialog}
-        onOpenChange={setShowCustomerDialog}
-        onConfirm={handleCustomerConfirm}
-        loading={sendingOrder}
-        title="Seus dados"
-        description="Informe seus dados para entrar em contato pelo WhatsApp."
-        confirmLabel="Enviar pelo WhatsApp"
-      />
     </div>
   );
 }

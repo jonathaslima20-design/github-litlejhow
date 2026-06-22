@@ -440,7 +440,8 @@ export function generateWhatsAppMessage(
   language: SupportedLanguage,
   sellerName: string,
   itemTitle?: string,
-  itemId?: string
+  itemId?: string,
+  itemUrl?: string
 ): string {
   console.log('🌍 GENERATING WHATSAPP MESSAGE:', {
     language,
@@ -448,16 +449,18 @@ export function generateWhatsAppMessage(
     itemTitle,
     itemId: itemId?.substring(0, 8)
   });
-  
+
+  const urlSuffix = itemUrl ? `\n\n${itemUrl}` : '';
+
   const messages = {
-    'pt-BR': itemTitle 
-      ? `Olá ${sellerName}, estou interessado no produto "${itemTitle}" (Ref: ${itemId?.substring(0, 8)}). Pode me enviar mais informações?`
+    'pt-BR': itemTitle
+      ? `Olá ${sellerName}, estou interessado no produto "${itemTitle}" (Ref: ${itemId?.substring(0, 8)}). Pode me enviar mais informações?${urlSuffix}`
       : `Olá ${sellerName}, vi sua vitrine e gostaria de mais informações sobre seus produtos.`,
     'en-US': itemTitle
-      ? `Hello ${sellerName}, I'm interested in the product "${itemTitle}" (Ref: ${itemId?.substring(0, 8)}). Can you send me more information?`
+      ? `Hello ${sellerName}, I'm interested in the product "${itemTitle}" (Ref: ${itemId?.substring(0, 8)}). Can you send me more information?${urlSuffix}`
       : `Hello ${sellerName}, I saw your storefront and would like more information about your products.`,
     'es-ES': itemTitle
-      ? `Hola ${sellerName}, estoy interesado en el producto "${itemTitle}" (Ref: ${itemId?.substring(0, 8)}). ¿Puedes enviarme más información?`
+      ? `Hola ${sellerName}, estoy interesado en el producto "${itemTitle}" (Ref: ${itemId?.substring(0, 8)}). ¿Puedes enviarme más información?${urlSuffix}`
       : `Hola ${sellerName}, vi tu escaparate y me gustaría más información sobre tus productos.`,
   };
 
