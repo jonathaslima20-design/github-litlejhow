@@ -327,17 +327,9 @@ function ProductCardComponent({
                   ) : (
                     <Button
                       size="sm"
-                      variant="outline"
                       className="w-full text-[10px] md:text-xs h-7 md:h-8"
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (onNavigate) onNavigate(); }}
-                      asChild
                     >
-                      <Link
-                        to={isCustomDomain ? `/produtos/${product.id}` : `/${corretorSlug}/produtos/${product.id}`}
-                        state={{ from: 'product-detail' }}
-                      >
-                        Exibir detalhes
-                      </Link>
+                      Exibir detalhes
                     </Button>
                   )}
                 </div>

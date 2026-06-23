@@ -23,6 +23,7 @@ import ProductVariantModal from '@/components/product/ProductVariantModal';
 import { getStockStatus } from '@/lib/stockUtils';
 import { getAvailableVariantStock } from '@/lib/stockReservationService';
 import { useInventoryEnabledForStore } from '@/hooks/useInventoryEnabled';
+import { useCheckoutSettingsForStore } from '@/hooks/useCheckoutSettings';
 import { StorefrontThemeProvider } from '@/contexts/StorefrontThemeContext';
 import type { ProductVariantStock } from '@/types';
 
@@ -49,6 +50,8 @@ export default function ProductDetailsPage({ customDomainSlug }: ProductDetailsP
   const [showCart, setShowCart] = useState(false);
 
   const { inventoryEnabled, showStockOnStorefront, blockZeroStock } = useInventoryEnabledForStore(corretor?.id);
+  const { settings: checkoutSettings } = useCheckoutSettingsForStore(corretor?.id);
+  const cartEnabled = checkoutSettings.cartEnabled;
   const [variantStockData, setVariantStockData] = useState<Array<{ id: string; color: string | null; size: string | null; flavor: string | null; weight_variant_id: string | null; quantity: number; reserved_quantity: number; available: number }>>([]);
 
   const { tiers: priceTiers, loading: loadingTiers } = useTieredPricing(
@@ -673,7 +676,7 @@ export default function ProductDetailsPage({ customDomainSlug }: ProductDetailsP
 
 
               {/* Send Button */}
-              {isAvailable && hasPrice && !isOutOfStock && (
+              {cartEnabled && isAvailable && hasPrice && !isOutOfStock && (
                 <div className="mt-8">
                   <Button
                     size="lg"
@@ -755,7 +758,7 @@ export default function ProductDetailsPage({ customDomainSlug }: ProductDetailsP
 
         {/* Floating Cart Button */}
         <AnimatePresence>
-          {cart.itemCount > 0 && (
+          {cartEnabled && cart.itemCount > 0 && (
             <motion.button
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -773,13 +776,15 @@ export default function ProductDetailsPage({ customDomainSlug }: ProductDetailsP
         </AnimatePresence>
 
         {/* Cart Modal */}
-        <CartModal
-          open={showCart}
-          onOpenChange={setShowCart}
-          corretor={corretor}
-          currency={currency}
-          language={language}
-        />
+        {cartEnabled && (
+          <CartModal
+            open={showCart}
+            onOpenChange={setShowCart}
+            corretor={corretor}
+            currency={currency}
+            language={language}
+          />
+        )}
       </div>
     </StorefrontThemeProvider>
   );
