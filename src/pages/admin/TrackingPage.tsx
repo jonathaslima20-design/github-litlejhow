@@ -87,11 +87,11 @@ export default function AdminTrackingPage() {
       .upsert(
         {
           id: 1,
-          google_ads_tag_id: trimmedTag || null,
+          google_ads_tag_id: trimmedTag || '',
           google_ads_enabled: googleAdsEnabled,
-          google_ads_cadastro_id: googleAdsCadastroId.trim() || null,
-          google_ads_checkout_id: googleAdsCheckoutId.trim() || null,
-          google_ads_purchase_id: googleAdsPurchaseId.trim() || null,
+          google_ads_cadastro_id: googleAdsCadastroId.trim() || '',
+          google_ads_checkout_id: googleAdsCheckoutId.trim() || '',
+          google_ads_purchase_id: googleAdsPurchaseId.trim() || '',
         },
         { onConflict: 'id' }
       );
