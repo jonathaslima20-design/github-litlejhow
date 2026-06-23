@@ -133,6 +133,7 @@ export function useCheckoutSettingsForStore(storeOwnerId: string | undefined) {
           deliveryOptions: data.settings.checkout.deliveryOptions ?? [],
           requirePaymentMethod: data.settings.checkout.requirePaymentMethod ?? true,
           requireDeliveryOption: data.settings.checkout.requireDeliveryOption ?? true,
+          cartEnabled: data.settings.checkout.cartEnabled ?? true,
         });
       }
       setLoading(false);
