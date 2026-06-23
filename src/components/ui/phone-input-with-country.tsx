@@ -87,6 +87,16 @@ const COUNTRIES: Country[] = [
     maxLength: 10,
   },
   {
+    code: 'PY',
+    name: 'Paraguai',
+    ddi: '+595',
+    flag: '🇵🇾',
+    format: 'XXX XXX XXX',
+    placeholder: '981 123 456',
+    minLength: 9,
+    maxLength: 9,
+  },
+  {
     code: 'ES',
     name: 'Espanha',
     ddi: '+34',
