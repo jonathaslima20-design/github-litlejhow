@@ -35,7 +35,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import TieredPricingIndicator from '@/components/product/TieredPricingIndicator';
-import { PhoneInput } from '@/components/ui/phone-input';
+import { PhoneInputWithCountry, COUNTRIES } from '@/components/ui/phone-input-with-country';
 import { useInventoryEnabledForStore } from '@/hooks/useInventoryEnabled';
 import { useCouponValidation } from '@/hooks/useCouponValidation';
 import { useCheckoutSettingsForStore } from '@/hooks/useCheckoutSettings';
@@ -70,6 +70,7 @@ export default function CartModal({
   const [step, setStep] = useState<'cart' | 'checkout'>('cart');
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
+  const [customerCountryCode, setCustomerCountryCode] = useState(corretor.country_code || '55');
   const [formErrors, setFormErrors] = useState<{ name?: string; phone?: string; payment?: string; delivery?: string }>({});
   const [couponCode, setCouponCode] = useState('');
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
@@ -151,8 +152,9 @@ export default function CartModal({
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) return;
     const cleanPhone = customerPhone.replace(/\D/g, '');
+    const fullPhone = customerCountryCode.replace('+', '') + cleanPhone;
     const productIds = cart.items.map(item => item.id);
-    const result = await validateCoupon(corretor.id, couponCode, cleanPhone, cart.total, productIds);
+    const result = await validateCoupon(corretor.id, couponCode, fullPhone, cart.total, productIds);
     if (result) {
       setAppliedCoupon(result);
     }
@@ -175,7 +177,10 @@ export default function CartModal({
       newErrors.name = 'Informe seu nome';
     }
     const cleanPhone = customerPhone.replace(/\D/g, '');
-    if (!cleanPhone || cleanPhone.length < 8) {
+    const ddiWithoutPlus = customerCountryCode.replace('+', '');
+    const matchedCountry = COUNTRIES.find(c => c.ddi === `+${ddiWithoutPlus}`);
+    const minLen = matchedCountry?.minLength || 8;
+    if (!cleanPhone || cleanPhone.length < minLen) {
       newErrors.phone = 'Informe um numero de WhatsApp valido';
     }
     if (checkoutSettings.requirePaymentMethod && enabledPaymentMethods.length > 0 && !selectedPaymentMethod) {
@@ -196,10 +201,10 @@ export default function CartModal({
       setSendingOrder(true);
 
       const cleanPhone = customerPhone.replace(/\D/g, '');
-      const countryCode = corretor.country_code || '55';
+      const countryCode = customerCountryCode.replace('+', '');
       const customer = { name: customerName.trim(), whatsapp: cleanPhone, countryCode };
       const orderMessage = generateOrderMessage(customer);
-      const whatsappUrl = generateWhatsAppUrl(corretor.whatsapp || '', orderMessage, countryCode);
+      const whatsappUrl = generateWhatsAppUrl(corretor.whatsapp || '', orderMessage, corretor.country_code || '55');
 
       // Open WhatsApp immediately while still in the synchronous user-gesture context.
       // Mobile browsers (iOS Safari, Android Chrome) block window.open() if called
@@ -269,6 +274,7 @@ export default function CartModal({
       setStep('cart');
       setCustomerName('');
       setCustomerPhone('');
+      setCustomerCountryCode(corretor.country_code || '55');
       setFormErrors({});
       onOpenChange(false);
     } catch (error) {
@@ -789,7 +795,7 @@ export default function CartModal({
               <div className="flex flex-col gap-0 -mb-2">
                 <div className="flex-1 overflow-y-auto space-y-3 pr-1 max-h-[calc(85vh-200px)]">
                   {/* Customer Info */}
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-3">
                     <div className="space-y-1.5">
                       <Label htmlFor="checkout-name" className="text-xs text-muted-foreground">
                         Nome
@@ -813,13 +819,14 @@ export default function CartModal({
                       <Label className="text-xs text-muted-foreground">
                         WhatsApp
                       </Label>
-                      <PhoneInput
+                      <PhoneInputWithCountry
                         value={customerPhone}
-                        onChange={(value) => {
-                          setCustomerPhone(value);
+                        defaultCountry={COUNTRIES.find(c => c.ddi === `+${corretor.country_code || '55'}`)?.code || 'BR'}
+                        onChange={(data) => {
+                          setCustomerPhone(data.phone);
+                          setCustomerCountryCode(data.ddi.replace('+', ''));
                           if (formErrors.phone) setFormErrors((p) => ({ ...p, phone: undefined }));
                         }}
-                        className="h-9 text-xs px-3"
                       />
                       {formErrors.phone && (
                         <p className="text-xs text-destructive">{formErrors.phone}</p>
