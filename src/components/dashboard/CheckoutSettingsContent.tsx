@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Loader as Loader2, CreditCard, Truck, Plus, Trash2, GripVertical, Percent, DollarSign } from 'lucide-react';
+import { Loader as Loader2, CreditCard, Truck, Plus, Trash2, Percent, ShoppingCart } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -132,6 +132,10 @@ export default function CheckoutSettingsContent() {
     save({ ...settings, requireDeliveryOption: checked });
   };
 
+  const toggleCartEnabled = (checked: boolean) => {
+    save({ ...settings, cartEnabled: checked });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -146,6 +150,34 @@ export default function CheckoutSettingsContent() {
 
   return (
     <div className="space-y-6">
+      {/* Cart Enable/Disable */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <ShoppingCart className="h-5 w-5 text-muted-foreground" />
+            <CardTitle>Carrinho de Compras</CardTitle>
+          </div>
+          <CardDescription>
+            Ative o carrinho para que seus clientes possam adicionar produtos e fazer pedidos. Desative se você não precisa de carrinho — ideal para imóveis, veículos e consultorias.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-row items-center justify-between rounded-lg border p-4">
+            <div className="space-y-0.5">
+              <p className="text-sm font-medium">Ativar carrinho de compras</p>
+              <p className="text-xs text-muted-foreground">
+                Quando desativado, o botão dos produtos mostrará "Exibir detalhes" e direcionará para a página do produto
+              </p>
+            </div>
+            <Switch
+              checked={settings.cartEnabled ?? true}
+              onCheckedChange={toggleCartEnabled}
+              disabled={saving}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Payment Methods */}
       <Card>
         <CardHeader>

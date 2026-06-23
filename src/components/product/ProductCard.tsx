@@ -20,6 +20,7 @@ interface ProductCardProps {
   language?: SupportedLanguage;
   inventoryEnabled?: boolean;
   showStockOnStorefront?: boolean;
+  cartEnabled?: boolean;
   onNavigate?: () => void;
 }
 
@@ -30,6 +31,7 @@ function ProductCardComponent({
   language = 'pt-BR',
   inventoryEnabled = false,
   showStockOnStorefront = false,
+  cartEnabled = true,
   onNavigate
 }: ProductCardProps) {
   const { t } = useTranslation(language);
@@ -310,17 +312,34 @@ function ProductCardComponent({
                 </p>
               )}
 
-              {/* Add to Cart Button or Consult Availability */}
+              {/* Add to Cart Button, View Details Button, or Consult Availability */}
               {isAvailable && hasPrice && !isOutOfStock && (
                 <div className="mt-2 md:mt-3 pt-1.5 md:pt-2 border-t">
-                  <Button
-                    size="sm"
-                    className="w-full text-[10px] md:text-xs h-7 md:h-8"
-                    onClick={handleAddToCart}
-                  >
-                    <ShoppingCart className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
-                    {totalInCart > 0 ? `No Carrinho (${totalInCart})` : 'Adicionar'}
-                  </Button>
+                  {cartEnabled ? (
+                    <Button
+                      size="sm"
+                      className="w-full text-[10px] md:text-xs h-7 md:h-8"
+                      onClick={handleAddToCart}
+                    >
+                      <ShoppingCart className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+                      {totalInCart > 0 ? `No Carrinho (${totalInCart})` : 'Adicionar'}
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full text-[10px] md:text-xs h-7 md:h-8"
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (onNavigate) onNavigate(); }}
+                      asChild
+                    >
+                      <Link
+                        to={isCustomDomain ? `/produtos/${product.id}` : `/${corretorSlug}/produtos/${product.id}`}
+                        state={{ from: 'product-detail' }}
+                      >
+                        Exibir detalhes
+                      </Link>
+                    </Button>
+                  )}
                 </div>
               )}
               {isOutOfStock && (
@@ -392,6 +411,7 @@ const arePropsEqual = (prevProps: ProductCardProps, nextProps: ProductCardProps)
     prevProps.product.low_stock_threshold === nextProps.product.low_stock_threshold &&
     prevProps.inventoryEnabled === nextProps.inventoryEnabled &&
     prevProps.showStockOnStorefront === nextProps.showStockOnStorefront &&
+    prevProps.cartEnabled === nextProps.cartEnabled &&
     prevProps.currency === nextProps.currency &&
     prevProps.language === nextProps.language &&
     prevProps.corretorSlug === nextProps.corretorSlug

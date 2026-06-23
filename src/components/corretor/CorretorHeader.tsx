@@ -18,9 +18,10 @@ interface CorretorHeaderProps {
   corretor: User;
   language?: SupportedLanguage;
   currency?: SupportedCurrency;
+  cartEnabled?: boolean;
 }
 
-export default function CorretorHeader({ corretor, language = 'pt-BR', currency = 'BRL' }: CorretorHeaderProps) {
+export default function CorretorHeader({ corretor, language = 'pt-BR', currency = 'BRL', cartEnabled = true }: CorretorHeaderProps) {
   const { t } = useTranslation(language);
   const { cart } = useCart();
   const [showCart, setShowCart] = useState(false);
@@ -98,22 +99,24 @@ export default function CorretorHeader({ corretor, language = 'pt-BR', currency 
           
           {/* Social buttons */}
           <div className="mt-6 flex items-center gap-4">
-            {/* Cart Button - Only show if there are items */}
-            <Button 
-              size="icon" 
-              variant="outline" 
-              className="h-14 w-14 md:h-12 md:w-12 rounded-full relative"
-              onClick={() => setShowCart(true)}
-            >
-              <ShoppingCart className="h-6 w-6 md:h-5 md:w-5" />
-              {cart.itemCount > 0 && (
-                <Badge 
-                  className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 flex items-center justify-center text-xs bg-primary"
-                >
-                  {cart.itemCount}
-                </Badge>
-              )}
-            </Button>
+            {/* Cart Button */}
+            {cartEnabled && (
+              <Button
+                size="icon"
+                variant="outline"
+                className="h-14 w-14 md:h-12 md:w-12 rounded-full relative"
+                onClick={() => setShowCart(true)}
+              >
+                <ShoppingCart className="h-6 w-6 md:h-5 md:w-5" />
+                {cart.itemCount > 0 && (
+                  <Badge
+                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 flex items-center justify-center text-xs bg-primary"
+                  >
+                    {cart.itemCount}
+                  </Badge>
+                )}
+              </Button>
+            )}
 
             {corretor.phone && (
               <Button 
@@ -191,13 +194,15 @@ export default function CorretorHeader({ corretor, language = 'pt-BR', currency 
       </div>
 
       {/* Cart Modal */}
-      <CartModal
-        open={showCart}
-        onOpenChange={setShowCart}
-        corretor={corretor}
-        currency={currency}
-        language={language}
-      />
+      {cartEnabled && (
+        <CartModal
+          open={showCart}
+          onOpenChange={setShowCart}
+          corretor={corretor}
+          currency={currency}
+          language={language}
+        />
+      )}
     </div>
   );
 }

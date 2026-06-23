@@ -16,6 +16,7 @@ const DEFAULT_CHECKOUT_SETTINGS: CheckoutSettings = {
   deliveryOptions: [],
   requirePaymentMethod: true,
   requireDeliveryOption: true,
+  cartEnabled: true,
 };
 
 interface UseCheckoutSettingsReturn {
@@ -53,6 +54,7 @@ export function useCheckoutSettings(): UseCheckoutSettingsReturn {
             deliveryOptions: data.settings.checkout.deliveryOptions ?? [],
             requirePaymentMethod: data.settings.checkout.requirePaymentMethod ?? true,
             requireDeliveryOption: data.settings.checkout.requireDeliveryOption ?? true,
+            cartEnabled: data.settings.checkout.cartEnabled ?? true,
           });
         }
       }

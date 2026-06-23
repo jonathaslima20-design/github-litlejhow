@@ -25,6 +25,7 @@ import { updateMetaTags, getCorretorMetaTags } from '@/utils/metaTags';
 import { scrollCoordinator } from '@/lib/scrollCoordinator';
 import { StorefrontThemeProvider } from '@/contexts/StorefrontThemeContext';
 import { useInventoryEnabledForStore } from '@/hooks/useInventoryEnabled';
+import { useCheckoutSettingsForStore } from '@/hooks/useCheckoutSettings';
 import { generateReferralLink } from '@/lib/referralUtils';
 
 const PromotionalBanner = lazy(() => import('@/components/corretor/PromotionalBanner'));
@@ -70,6 +71,8 @@ export default function CorretorPage({ customDomainSlug }: CorretorPageProps = {
 
   const isPaidPlan = corretor?.plan_status === 'active';
   const { inventoryEnabled, showStockOnStorefront } = useInventoryEnabledForStore(corretor?.id);
+  const { settings: checkoutSettings } = useCheckoutSettingsForStore(corretor?.id);
+  const cartEnabled = checkoutSettings.cartEnabled ?? true;
 
   const language: SupportedLanguage = corretor?.language || 'pt-BR';
   const currency: SupportedCurrency = corretor?.currency || 'BRL';
@@ -477,6 +480,7 @@ export default function CorretorPage({ customDomainSlug }: CorretorPageProps = {
         corretor={corretor}
         language={language}
         currency={currency}
+        cartEnabled={cartEnabled}
       />
 
       <div className="mt-6 mb-8">
@@ -572,6 +576,7 @@ export default function CorretorPage({ customDomainSlug }: CorretorPageProps = {
                           language={language}
                           inventoryEnabled={inventoryEnabled}
                           showStockOnStorefront={showStockOnStorefront}
+                          cartEnabled={cartEnabled}
                           onNavigate={() => {
                             const currentScrollPosition = window.scrollY || document.documentElement.scrollTop;
                             pageStateHook.saveCurrentState(currentScrollPosition);

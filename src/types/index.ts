@@ -659,4 +659,5 @@ export interface CheckoutSettings {
   deliveryOptions: DeliveryOption[];
   requirePaymentMethod: boolean;
   requireDeliveryOption: boolean;
+  cartEnabled?: boolean;
 }
