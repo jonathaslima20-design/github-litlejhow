@@ -433,8 +433,12 @@ export default async (request: Request, context: Context) => {
     if (isCustomDomainHostname(url.hostname) && supabaseUrl && supabaseKey) {
       console.log('🌐 Custom domain detected:', url.hostname);
 
+      const altHostname = url.hostname.startsWith('www.')
+        ? url.hostname.slice(4)
+        : `www.${url.hostname}`;
+
       const domainResponse = await fetch(
-        `${supabaseUrl}/rest/v1/custom_domains?domain=eq.${encodeURIComponent(url.hostname)}&status=eq.active&select=user_id`,
+        `${supabaseUrl}/rest/v1/custom_domains?domain=in.(${encodeURIComponent(`"${url.hostname}","${altHostname}"`)})&status=eq.active&select=user_id`,
         {
           headers: {
             'apikey': supabaseKey,

@@ -17,7 +17,11 @@ const CustomDomainContext = createContext<CustomDomainState>({
   loading: true,
 });
 
-const KNOWN_HOSTS = ['vitrineturbo.com', 'www.vitrineturbo.com', 'localhost', '127.0.0.1'];
+const KNOWN_HOSTS = [
+  'vitrineturbo.com', 'www.vitrineturbo.com',
+  'vitrineturbo.com.br', 'www.vitrineturbo.com.br',
+  'localhost', '127.0.0.1',
+];
 
 function isCustomDomainHostname(hostname: string): boolean {
   if (KNOWN_HOSTS.includes(hostname)) return false;
@@ -25,6 +29,13 @@ function isCustomDomainHostname(hostname: string): boolean {
   if (hostname.endsWith('.vercel.app')) return false;
   if (hostname.endsWith('.bolt.host')) return false;
   return true;
+}
+
+function getDomainVariants(hostname: string): string[] {
+  if (hostname.startsWith('www.')) {
+    return [hostname, hostname.slice(4)];
+  }
+  return [hostname, `www.${hostname}`];
 }
 
 export function CustomDomainProvider({ children }: { children: ReactNode }) {
@@ -66,10 +77,12 @@ export function CustomDomainProvider({ children }: { children: ReactNode }) {
 
   const resolveCustomDomain = async (hostname: string, cacheKey: string): Promise<void> => {
     try {
+      const variants = getDomainVariants(hostname);
+
       const { data: domainRecord } = await supabase
         .from('custom_domains')
         .select('user_id')
-        .eq('domain', hostname)
+        .in('domain', variants)
         .eq('status', 'active')
         .maybeSingle();
 
