@@ -18,6 +18,7 @@ import { ptBR } from 'date-fns/locale';
 import { useUserSubscription } from '@/hooks/useUserSubscription';
 import SubscriptionManagement from '@/components/admin/SubscriptionManagement';
 import UserActivityLog from '@/components/admin/UserActivityLog';
+import { generateReferralLink } from '@/lib/referralUtils';
 import OrderStatusBadge from '@/components/orders/OrderStatusBadge';
 import { fetchOrders, getOrderStats } from '@/lib/orderService';
 import type { Order } from '@/types';
@@ -1219,7 +1220,7 @@ function ReferralsTab({ userId, referralCode }: { userId: string; referralCode?:
 
   useEffect(() => { fetchReferrals(); }, [fetchReferrals]);
 
-  const referralLink = referralCode ? `${window.location.origin}/register?ref=${referralCode}` : null;
+  const referralLink = referralCode ? generateReferralLink(referralCode) : null;
 
   if (loading) {
     return (

@@ -57,7 +57,7 @@ export function useReferralData(userId: string | undefined): UseReferralDataRetu
 
       let referralCode = user?.referral_code;
 
-      if (!referralCode) {
+      if (!referralCode || referralCode.length > 10) {
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
         let code = 'VT';
         for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)];
