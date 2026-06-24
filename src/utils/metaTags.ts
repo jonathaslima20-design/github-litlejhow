@@ -128,14 +128,11 @@ export function resetMetaTags() {
 /**
  * Generates meta tags config for corretor page
  */
-export function getCorretorMetaTags(corretor: any, language: SupportedLanguage = 'pt-BR'): MetaTagsConfig {
-  // Use getPageTitle for consistency with browser title bar
-  const title = getPageTitle(language, corretor.name);
-  const description = corretor.bio || `Confira os produtos de ${corretor.name} na VitrineTurbo`;
-  // CRITICAL: Always prioritize the corretor's avatar/logo for storefront preview
-  // This ensures the user's brand appears in WhatsApp/social media previews
-  const image = corretor.avatar_url || 
-                corretor.cover_url_desktop || 
+export function getCorretorMetaTags(corretor: any, language: SupportedLanguage = 'pt-BR', isCustomDomain = false): MetaTagsConfig {
+  const title = getPageTitle(language, corretor.name, undefined, isCustomDomain);
+  const description = corretor.bio || (isCustomDomain ? `Confira os produtos de ${corretor.name}` : `Confira os produtos de ${corretor.name} na VitrineTurbo`);
+  const image = corretor.avatar_url ||
+                corretor.cover_url_desktop ||
                 corretor.cover_url_mobile ||
                 'https://ikvwygqmlqhsyqmpgaoz.supabase.co/storage/v1/object/public/public/logos/flat-icon-vitrine.png.png';
   const url = `${window.location.origin}/${corretor.slug}`;
@@ -162,9 +159,8 @@ export function getCorretorMetaTags(corretor: any, language: SupportedLanguage =
 /**
  * Generates meta tags config for product page
  */
-export function getProductMetaTags(product: any, corretor: any, language: SupportedLanguage = 'pt-BR'): MetaTagsConfig {
-  // Use getPageTitle for consistency with browser title bar
-  const title = getPageTitle(language, corretor.name, product.title);
+export function getProductMetaTags(product: any, corretor: any, language: SupportedLanguage = 'pt-BR', isCustomDomain = false): MetaTagsConfig {
+  const title = getPageTitle(language, corretor.name, product.title, isCustomDomain);
   
   // Create description from product info
   let description = product.short_description || '';

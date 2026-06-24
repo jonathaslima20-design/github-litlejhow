@@ -126,7 +126,7 @@ export default function ProductDetailsPage({ customDomainSlug }: ProductDetailsP
 
         // Update meta tags for social media previews
         const currentLanguage = corretorData.language || 'pt-BR';
-        const metaConfig = getProductMetaTags(productData, corretorData, currentLanguage);
+        const metaConfig = getProductMetaTags(productData, corretorData, currentLanguage, !!customDomainSlug);
         updateMetaTags(metaConfig);
         
         // Update favicon to product image or user's avatar

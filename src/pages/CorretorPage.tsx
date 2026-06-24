@@ -228,7 +228,7 @@ export default function CorretorPage({ customDomainSlug }: CorretorPageProps = {
   // ─── Meta tags ───────────────────────────────────────────────────────────────
   useEffect(() => {
     if (corretor) {
-      const metaConfig = getCorretorMetaTags(corretor, language);
+      const metaConfig = getCorretorMetaTags(corretor, language, !!customDomainSlug);
       updateMetaTags(metaConfig);
     }
   }, [corretor, language]);

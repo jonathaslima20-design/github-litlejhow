@@ -49,9 +49,10 @@ function isCrawlerUserAgent(userAgent: string): boolean {
 /**
  * Generates HTML with dynamic Open Graph meta tags for user profiles
  */
-function generateMetaTagsHTML(profile: UserProfile, requestUrl: string): string {
-  const title = `${profile.name} - VitrineTurbo`;
-  const description = profile.bio || `Confira os produtos de ${profile.name} na VitrineTurbo`;
+function generateMetaTagsHTML(profile: UserProfile, requestUrl: string, isCustomDomain = false): string {
+  const title = isCustomDomain ? profile.name : `${profile.name} - VitrineTurbo`;
+  const description = profile.bio || (isCustomDomain ? `Confira os produtos de ${profile.name}` : `Confira os produtos de ${profile.name} na VitrineTurbo`);
+  const siteName = isCustomDomain ? profile.name : 'VitrineTurbo';
 
   // Prioritize avatar (logo) for storefront preview
   const imageUrl = profile.avatar_url ||
@@ -85,7 +86,7 @@ function generateMetaTagsHTML(profile: UserProfile, requestUrl: string): string 
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:type" content="image/png" />
-    <meta property="og:site_name" content="VitrineTurbo" />
+    <meta property="og:site_name" content="${siteName}" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -124,8 +125,8 @@ function generateMetaTagsHTML(profile: UserProfile, requestUrl: string): string 
 /**
  * Generates HTML with dynamic Open Graph meta tags for products
  */
-function generateProductMetaTagsHTML(product: ProductProfile, profile: UserProfile, requestUrl: string): string {
-  const title = `${product.title} - ${profile.name} | VitrineTurbo`;
+function generateProductMetaTagsHTML(product: ProductProfile, profile: UserProfile, requestUrl: string, isCustomDomain = false): string {
+  const title = isCustomDomain ? `${product.title} - ${profile.name}` : `${product.title} - ${profile.name} | VitrineTurbo`;
   
   // Create description from product info
   let description = product.short_description || '';
@@ -152,6 +153,7 @@ function generateProductMetaTagsHTML(product: ProductProfile, profile: UserProfi
                    'https://ikvwygqmlqhsyqmpgaoz.supabase.co/storage/v1/object/public/public/logos/flat-icon-vitrine.png.png';
 
   const canonicalUrl = requestUrl;
+  const siteName = isCustomDomain ? profile.name : 'VitrineTurbo';
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -177,7 +179,7 @@ function generateProductMetaTagsHTML(product: ProductProfile, profile: UserProfi
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:type" content="image/png" />
-    <meta property="og:site_name" content="VitrineTurbo" />
+    <meta property="og:site_name" content="${siteName}" />
 
     <!-- Product specific Open Graph -->
     <meta property="product:brand" content="${profile.name}" />
@@ -491,7 +493,7 @@ export default async (request: Request, context: Context) => {
                 if (productResponse.ok) {
                   const products = await productResponse.json() as ProductProfile[];
                   if (products.length > 0) {
-                    const html = generateProductMetaTagsHTML(products[0], profile, request.url);
+                    const html = generateProductMetaTagsHTML(products[0], profile, request.url, true);
                     return new Response(html, {
                       status: 200,
                       headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=300, s-maxage=600' },
@@ -500,7 +502,7 @@ export default async (request: Request, context: Context) => {
                 }
               } else {
                 // Storefront root on custom domain
-                const html = generateMetaTagsHTML(profile, request.url);
+                const html = generateMetaTagsHTML(profile, request.url, true);
                 return new Response(html, {
                   status: 200,
                   headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=300, s-maxage=600' },

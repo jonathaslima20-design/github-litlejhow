@@ -475,24 +475,26 @@ export function generateWhatsAppMessage(
 export function getPageTitle(
   language: SupportedLanguage,
   sellerName: string,
-  itemTitle?: string
+  itemTitle?: string,
+  isCustomDomain = false
 ): string {
   console.log('🏷️ GENERATING PAGE TITLE:', {
     language,
     sellerName,
     itemTitle
   });
-  
+
+  const suffix = isCustomDomain ? '' : ' | VitrineTurbo';
   const titles = {
-    'pt-BR': itemTitle 
-      ? `${itemTitle} - ${sellerName} | VitrineTurbo`
-      : `${sellerName} | VitrineTurbo`,
+    'pt-BR': itemTitle
+      ? `${itemTitle} - ${sellerName}${suffix}`
+      : `${sellerName}${suffix}`,
     'en-US': itemTitle
-      ? `${itemTitle} - ${sellerName} | VitrineTurbo`
-      : `${sellerName} | VitrineTurbo`,
+      ? `${itemTitle} - ${sellerName}${suffix}`
+      : `${sellerName}${suffix}`,
     'es-ES': itemTitle
-      ? `${itemTitle} - ${sellerName} | VitrineTurbo`
-      : `${sellerName} | VitrineTurbo`,
+      ? `${itemTitle} - ${sellerName}${suffix}`
+      : `${sellerName}${suffix}`,
   };
 
   const finalTitle = titles[language] || titles['pt-BR'];
